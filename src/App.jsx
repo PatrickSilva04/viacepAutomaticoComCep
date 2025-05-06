@@ -1,26 +1,113 @@
-import style from './App.module.css'
-import { cards } from './assets/mock/cards'
-import { Menu } from './components/menu'
 
-function App() {
+import { useState, useEffect } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { Menu } from "./Components/menu";
+import { Loading } from './Components/spinner';
+
+
+function Contact() {
+  const [cep, setCep] = useState("");
+  const [lat, setLat] = useState("");
+  const [lng, setLng] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [bairro, setBairro] = useState("");
+  const [rua, setRua] = useState("");
+  const [estado, setEstado] = useState("");
+  const [localidade, setLocalidade] = useState("");
+
+  const position = [lat, lng];
+
+  function handleCep(e) {
+    setCep(e.target.value);
+  }
+
+  function ChangeView({ center }) {
+    const map = useMap();
+    map.setView(center, 15); 
+    return null;
+  }
+
+  useEffect(() => {
+    const sanitizedCep = cep.replace(/\D/g, ""); 
+    if (sanitizedCep.length !== 8) return;
+
+    setLoading(true);
+
+    fetch(`https://viacep.com.br/ws/${sanitizedCep}/json/`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.erro) {
+          console.warn("CEP não encontrado");
+          setLoading(false);
+          return;
+        }
+
+        const { logradouro, localidade, uf, bairro, estado } = data;
+        setBairro(bairro)
+        setRua(logradouro)
+        setEstado(estado)
+        setLocalidade(localidade)
+        const address = `${logradouro ? logradouro + ', ' : ''}${localidade}, ${uf}`;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+          .then((response) => response.json())
+          .then((locationData) => {
+            if (locationData.length > 0) {
+              const { lat, lon } = locationData[0];
+              setLat(parseFloat(lat));
+              setLng(parseFloat(lon));
+            } else {
+              console.warn("Coordenadas não encontradas");
+            }
+            setLoading(false);
+          })
+          .catch(error => {
+            console.error("Erro ao buscar coordenadas:", error);
+            setLoading(false);
+          });
+      })
+      .catch(error => {
+        console.error("Erro ao buscar CEP:", error);
+        setLoading(false);
+      });
+  }, [cep]);
+
   return (
     <>
-     <Menu option01='viacep'/>
-     <main>
-      <section id='s1' className={style.s1}>
-        {cards.map((item, index) => {
-          return(
-            <div key={index} className={style.crdzao}>
-              <h5>{item.text}</h5>
-              <p>{item.maiscoisa}</p>
-              <img src={item.img} alt={item.text} width={200} height={"auto"}/>
-            </div>
-          )
-        })}
-      </section>
-     </main>
+      <Menu s1="opa" s3="CONTATO" s4="batata" />
+      <br /><br /><br /><br />
+      <h1>CONTATO</h1>
+      <input type="text" placeholder="Insira o CEP" onChange={handleCep} /><br></br>
+      <strong>BAIRRO:</strong>  {bairro} <br></br>  <strong>RUA:</strong>  {rua}<br></br>  <strong>ESTADO:</strong>  {estado} <br></br> <strong>CIDADE:</strong>  {localidade}
+      {loading ?
+       <Loading/> :
+       <MapContainer
+        center={position}
+        zoom={13}
+        scrollWheelZoom={false}
+        style={{ width: "100%", height: "700px" }}
+      >
+        <ChangeView center={position} />
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={position}>
+          <Popup>
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+            >
+              Abrir no Google Maps
+            </a>
+          </Popup>
+        </Marker>
+      </MapContainer> }
+
+      
     </>
-  )
+  );
 }
 
-export default App
+export default Contact;
