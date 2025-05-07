@@ -3,6 +3,7 @@ import { useState, FormEvent } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CEPSearchProps {
   onSearch: (cep: string) => void;
@@ -11,6 +12,7 @@ interface CEPSearchProps {
 
 const CEPSearch = ({ onSearch, isLoading }: CEPSearchProps) => {
   const [cep, setCep] = useState('');
+  const isMobile = useIsMobile();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -34,21 +36,21 @@ const CEPSearch = ({ onSearch, isLoading }: CEPSearchProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 w-full">
+    <form onSubmit={handleSubmit} className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-3 w-full`}>
       <div className="relative flex-grow">
         <Input
           type="text"
           value={cep}
           onChange={handleCEPChange}
           placeholder="Digite o CEP (apenas números)"
-          className="pl-10 h-12 text-lg"
+          className="pl-10 h-10 md:h-12 text-base md:text-lg"
           maxLength={9}
         />
-        <Search className="absolute left-3 top-3 text-gray-400" size={24} />
+        <Search className="absolute left-3 top-2.5 md:top-3 text-gray-400" size={isMobile ? 20 : 24} />
       </div>
       <Button 
         type="submit" 
-        className="h-12 px-6 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition-all"
+        className={`h-10 md:h-12 px-4 md:px-6 ${isMobile ? 'w-full' : ''} bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition-all`}
         disabled={isLoading}
       >
         {isLoading ? "Buscando..." : "Buscar"}
