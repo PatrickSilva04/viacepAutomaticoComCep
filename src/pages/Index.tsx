@@ -56,7 +56,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-6 md:py-12">
         <div className="text-center mb-6 md:mb-10">
           <h1 className={`${isMobile ? 'text-3xl' : 'text-4xl'} font-bold text-blue-800 mb-3 md:mb-4`}>
-          ViaCepAutomaticoComCep
+            Buscador de CEP
           </h1>
           <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2">
             Digite um CEP válido para obter informações detalhadas sobre o endereço.
